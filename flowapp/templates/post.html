@@ -1,5 +1,9 @@
 {% extends "layout.html" %}
 {% block content %}
+
+
+
+
 <article class="media content-section">
   <img class="rounded-circle article-img"
     src="{{ url_for('static', filename='profile_pics/' + device.dispositivo.profile.image_file) }}" alt="Foto de Perfil del usuario asociado">
@@ -23,6 +27,8 @@
     <p class="article-content"><strong>Fecha Inicial Monitoreo:</strong> {{ device.configLimiteDispositivo.startDateConfig.strftime('%Y-%m-%d') }} </p>
     <p class="article-content"><strong>Fecha Final Monitoreo:</strong> {{ device.configLimiteDispositivo.endDateConfig.strftime('%Y-%m-%d') }} </p>
   </div>
+
+ 
 
 </article>
 <h2 class="article-title"> Tu historial:</h2>
@@ -86,6 +92,24 @@
     </div>
   </div>
 </div>
+
+  
+  {% if diagrama_fechas %}
+      <embed type="image/svg+xml" src={{diagrama_fechas|safe}} /> 
+  {% endif %}
+  {% if diagrama_barra %}
+      <embed type="image/svg+xml" src={{diagrama_barra|safe}} />
+  {% endif %}
+  {% if diagrama_torta %}
+        <embed type="image/svg+xml" src={{diagrama_torta|safe}} /> 
+  {% endif %}
+  
+  {% if diagrama_consumo_dia%}
+  <embed type="image/svg+xml" src={{diagrama_consumo_dia|safe}} /> 
+  {% endif %}
+
+  
+
 
 
 <!-- Modal -->
