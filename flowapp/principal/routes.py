@@ -15,6 +15,7 @@ principal = Blueprint('principal', __name__)
 def home():
     page = None
     devices = None
+    diagrama_barra = None
     lista_recomendacion = db.session.query(Recomendacion.msg_tip).all()
     if current_user.is_authenticated:
         page = request.args.get('page', 1, type=int)
@@ -27,8 +28,9 @@ def home():
             UserDevice.linkDate.desc()).paginate(page=page, per_page=5)
         lista_consumos_consolidado = db.session.query(DeviceConsumption.idUserDevice, UserDevice.zona, Categoria.title,  func.sum(DeviceConsumption.quantity)).join(
             UserDevice).join(Categoria).filter(UserDevice.idUserFK == current_user.id).group_by(DeviceConsumption.idUserDevice).all()
-        diagrama_barra = graficar_resumen_dispositivos(lista_consumos_consolidado)
-    return render_template('home.html', devices=devices, datetime=datetime, compare=compare, lista_recomendacion=lista_recomendacion,diagrama_barra = diagrama_barra)
+        diagrama_barra = graficar_resumen_dispositivos(
+            lista_consumos_consolidado)
+        return render_template('home.html', devices=devices, datetime=datetime, compare=compare, lista_recomendacion=lista_recomendacion, diagrama_barra=diagrama_barra)
 
     return render_template('about.html', title='Acerca de')
 
