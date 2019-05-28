@@ -1,9 +1,11 @@
 from flask import Blueprint, render_template, url_for, flash, redirect, request, abort
 from flask_login import login_user, current_user, logout_user, login_required
-from flowapp.usuarios.forms import (RegistrationForm, User, UserProfile, LoginForm, UpdateAccountForm, RequestResetForm, ResetPasswordForm)
+from flowapp.usuarios.forms import (RegistrationForm, User, UserProfile,
+                                    LoginForm, UpdateAccountForm, RequestResetForm, ResetPasswordForm)
 from flowapp import db, bcrypt, mail
-from flowapp.models import User, UserDevice
-from flowapp.usuarios.utilitarios import send_reset_email, save_picture
+from sqlalchemy import text, and_, func, cast, Date
+from flowapp.models import User, UserDevice, DeviceConsumption, Categoria
+from flowapp.usuarios.utilitarios import send_reset_email, save_picture,graficar_resumen_dispositivos
 
 usuarios = Blueprint('usuarios', __name__)
 
@@ -46,7 +48,7 @@ def login():
             # Pasar el usuario de sesion
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('principal.home'))
+            return redirect(next_page) if next_page else redirect(url_for('principal.about'))
         else:
             flash('Datos de inicio Incorrectos. Verificar Usuario y Password', 'danger')
     return render_template('login.html', title='Login', form=form)
@@ -55,6 +57,7 @@ def login():
 @usuarios.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
+
     form = UpdateAccountForm()
     # Primero Buscar el Email
     user_profile = UserProfile.query.filter_by(
@@ -80,11 +83,17 @@ def account():
 
 @usuarios.route("/user/<string:username>")
 def user_posts(username):
+    diagrama_barra = None
     page = request.args.get('page', 1, type=int)
     user = User.query.filter_by(username=username).first_or_404()
-    devices = UserDevice.query.filter_by(idUserFK=current_user.id).order_by(
+    lista_consumos_consolidado = db.session.query(DeviceConsumption.idUserDevice, UserDevice.zona, Categoria.title,  func.sum(DeviceConsumption.quantity)).join(
+        UserDevice).join(Categoria).filter(UserDevice.idUserFK == user.id).group_by(DeviceConsumption.idUserDevice).all()
+    diagrama_barra = graficar_resumen_dispositivos(lista_consumos_consolidado)
+    print('El usuario seleccionado', user)
+    print('La Lista', lista_consumos_consolidado)
+    devices = UserDevice.query.filter_by(idUserFK=user.id).order_by(
         UserDevice.linkDate.desc()).paginate(page=page, per_page=5)
-    return render_template('user_posts.html', devices=devices, user=user)
+    return render_template('user_posts.html', devices=devices, user=user,diagrama_barra=diagrama_barra)
 
 
 @usuarios.route("/logout")

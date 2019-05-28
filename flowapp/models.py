@@ -110,10 +110,9 @@ class UserDevice(db.Model):
         'devicecategory.IdDeviceCategory'))
     zona = db.Column('Zone', db.String(100))
     consumosDispositivo = db.relationship(
-        'DeviceConsumption', backref='userDevice')
+        'DeviceConsumption', backref='userDevice', cascade="all, delete-orphan")
     configLimiteDispositivo = db.relationship(
-        'DeviceConfiguration', backref='userDeviceConfigParent',uselist=False)
-
+        'DeviceConfiguration', backref='userDeviceConfigParent', uselist=False, cascade="all, delete-orphan")
 
 
 class Unit(db.Model):
@@ -146,3 +145,19 @@ class DeviceConfiguration(db.Model):
     isPeriodic = db.Column('IsPeriodic', db.Integer, default=1)
     idUserDevice = db.Column('IdUserDevice', db.Integer,
                              db.ForeignKey('userdevice.IdUserDevice'))
+    estrato_id = db.Column('estrato',db.Integer, db.ForeignKey('estratocostocc.idcosto'))
+
+
+class EstratoCosto(db.Model):
+    __tablename__ = 'estratocostocc'
+    id = db.Column('idcosto', db.Integer, primary_key=True)
+    estrato = db.Column('estrato', db.String(100), nullable=False)
+    costo = db.Column('costo', db.Float)
+    dispositivo_estrato = db.relationship(
+        'DeviceConfiguration', uselist=False, backref='estrato')
+
+class Recomendacion(db.Model):
+    __tablename__ = 'recommendation'
+    id = db.Column('IdTip', db.Integer, primary_key=True)
+    msg_tip = db.Column('Recommendation', db.String(500), nullable=False)
+    idTipe = db.Column('IdType',db.Integer, db.ForeignKey('recommendationtype.IdType'))

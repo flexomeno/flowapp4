@@ -57,7 +57,7 @@ def graficar_consumo_dia(lista_consumos_dia):
         lista_dias.append(etiqueta[0].strftime('%Y-%m-%d')+" "+etiqueta[0].strftime("%A"))
         lista_consumos.append(etiqueta[1])
 
-    diagrama_barra_vertical = pygal.Bar()
+    diagrama_barra_vertical = pygal.Bar(legend_at_bottom=True)
     diagrama_barra_vertical.title = 'Consumo por días'
     #diagrama_barra_vertical.x_labels = lista_dias
 
@@ -68,3 +68,5 @@ def graficar_consumo_dia(lista_consumos_dia):
     diagrama_renderizado = diagrama_barra_vertical.render_data_uri()
 
     return (diagrama_renderizado)
+
+

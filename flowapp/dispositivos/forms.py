@@ -1,6 +1,6 @@
 from wtforms import StringField, TextAreaField, SelectField, SubmitField, DateField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
-from flowapp.models import Categoria
+from flowapp.models import Categoria,EstratoCosto
 from flask_wtf import FlaskForm
 from datetime import date
 
@@ -15,6 +15,9 @@ class PostForm(FlaskForm):
     dateInicioConsumo = DateField('Fecha Inicio', validators=[
                            DataRequired()], format="%m/%d/%Y", default=date.today)
     periocidad = SelectField('Periocidad', coerce=int, choices=[(30, 'Mensual'), (60, 'Bimensual'), (90, 'Trimestral')])
+    estrato = SelectField('Estrato', coerce=int, default=1, choices=[(
+        estrato.id, estrato.estrato) for estrato in EstratoCosto.query.all()])
+
     submit = SubmitField('Enviar')
 
 

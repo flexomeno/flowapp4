@@ -1,5 +1,5 @@
 from flowapp.dispositivos.forms import (PostForm, DateForm)
-from flowapp.models import Device, UserDevice, Categoria, DeviceConsumption, DeviceConfiguration
+from flowapp.models import Device, UserDevice, Categoria, DeviceConsumption, DeviceConfiguration, EstratoCosto
 from flask import render_template, url_for, flash, redirect, request, abort, Blueprint
 from flask_login import current_user, login_required
 from flowapp import db
@@ -16,6 +16,7 @@ dispositivos = Blueprint('dispositivos', __name__)
 def new_post():
     form = PostForm()
     if form.validate_on_submit():
+
         # Commit al Device - Se esta creando un nuevo
         device = Device(serialID=form.title.data)
         db.session.add(device)
@@ -23,6 +24,8 @@ def new_post():
         # Obtencion Categoria Seleccionada
         id_categoria = form.category.data
         categoria = Categoria.query.filter_by(id=id_categoria).first()
+        # Obtencion Estrato
+        estrato = EstratoCosto.query.filter_by(id=form.estrato.data).first()
         # Obtencion Zona
         zona = form.content.data
         device_user = UserDevice(dispUser=device, dispositivo=current_user,
@@ -31,7 +34,7 @@ def new_post():
         db.session.commit()
         # Insercion de la informacion de la configuracion del Dispositivo
         user_device_limit = DeviceConfiguration(limitDefined=form.limiteConsumo.data, startDateConfig=form.dateInicioConsumo.data,
-                                                endDateConfig=form.dateInicioConsumo.data + timedelta(days=form.periocidad.data), userDeviceConfigParent=device_user)
+                                                endDateConfig=form.dateInicioConsumo.data + timedelta(days=form.periocidad.data), userDeviceConfigParent=device_user, estrato_id=estrato.id)
         db.session.add(user_device_limit)
         db.session.commit()
         flash('Su dispositivo se ha registrado!', 'success')
@@ -51,6 +54,7 @@ def post(post_id):
     diagrama_torta = None
     diagrama_fechas = None
     diagrama_consumo_dia = None
+    costo_estimado = None
 
     # Obtener total consumo del dispositivo
     total_consumo = db.session.query(func.sum(DeviceConsumption.quantity)).filter(
@@ -65,6 +69,12 @@ def post(post_id):
     list_consumo_dia_fechas = db.session.query(DeviceConsumption.date).filter(
         DeviceConsumption.idUserDevice == device.id).group_by((cast(DeviceConsumption.date, Date)))
 
+    # Obtencion de estrato
+    estrato_asociado = device.configLimiteDispositivo.estrato.id
+    estrato_costo = EstratoCosto.query.filter_by(id=estrato_asociado).first()
+    print('estrato_asociado', estrato_asociado)
+    print('estrato_costo', estrato_costo.costo)
+
     if request.method == 'GET':
 
         # Obtener Lista de Consumos
@@ -78,9 +88,13 @@ def post(post_id):
             diagrama_fechas = graficar_date_diagrama(list_consumos)
             diagrama_consumo_dia = graficar_consumo_dia(
                 lista_consumo_dia)
-            if total_consumo.scalar() > limite_definido.scalar():
+            if total_consumo.scalar() > limite_definido.scalar()+20:
                 flash('Usted ha excedido el consumo límite en: ' +
-                      str(total_consumo.scalar()-limite_definido.scalar())+' C.C !!!', 'warning')
+                      str(total_consumo.scalar()-limite_definido.scalar())+' C.C  - Sea Consciente!!!', 'danger')
+            if total_consumo.scalar() < limite_definido.scalar():
+                flash('Su consumo es ahorrador, continúe salvando el Planeta', 'success')
+            costo_estimado = estrato_costo.costo*total_consumo.scalar()
+            print('CostoTotal', costo_estimado)
 
     elif form.validate_on_submit():
         list_consumos = db.session.query(DeviceConsumption).filter(and_((func.date(
@@ -94,7 +108,7 @@ def post(post_id):
             idUserDevice=device.id)
         return render_template('post.html', device=device, listConsumos=list_consumos, form=form)
 
-    return render_template('post.html', device=device, listConsumos=list_consumos, form=form, diagrama_barra=diagrama_barra, diagrama_torta=diagrama_torta, diagrama_fechas=diagrama_fechas, diagrama_consumo_dia=diagrama_consumo_dia)
+    return render_template('post.html', device=device, listConsumos=list_consumos, form=form, diagrama_barra=diagrama_barra, diagrama_torta=diagrama_torta, diagrama_fechas=diagrama_fechas, diagrama_consumo_dia=diagrama_consumo_dia, costo_estimado=costo_estimado)
 
 
 @dispositivos.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
@@ -116,6 +130,7 @@ def update_post(post_id):
         device_config.startDateConfig = form.dateInicioConsumo.data
         device_config.endDateConfig = form.dateInicioConsumo.data + \
             timedelta(days=form.periocidad.data)
+        device_config.estrato_id = form.estrato.data
         db.session.commit()
         flash('Se ha actualizado la información de tu dispositivo!', 'success')
         return redirect(url_for('dispositivos.post', post_id=device.id))

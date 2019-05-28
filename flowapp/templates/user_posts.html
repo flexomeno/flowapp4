@@ -10,7 +10,11 @@
               <small class="text-muted">{{ device.linkDate.strftime('%Y-%m-%d') }}</small>
             </div>
             <h2><a class="article-title" href="{{ url_for('dispositivos.post', post_id=device.id) }}">{{ device.dispUser.serialID }}</a></h2>
-            <p class="article-content"><strong>Categoria:</strong> {{ device.dispCategoria.title }} - <strong>Zona:</strong> {{ device.zona }}</p>
+            
+            <p class="article-content"><strong>Categoria:</strong> {{ device.dispCategoria.title }} - <strong>Zona:</strong> {{ device.zona }} - <strong>Limite en CC:</strong> {{ device.configLimiteDispositivo.limitDefined }}</p>
+            <p class="article-content"><strong>Fecha Inicial Monitoreo:</strong> {{ device.configLimiteDispositivo.startDateConfig.strftime('%Y-%m-%d') }} </p>
+            <p class="article-content"><strong>Fecha Final Monitoreo:</strong> {{ device.configLimiteDispositivo.endDateConfig.strftime('%Y-%m-%d') }} </p>
+            <p class="article-content"><strong>Estrato:</strong> {{ device.configLimiteDispositivo.estrato.estrato }} </p>
           </div>
         </article>
     {% endfor %}
@@ -25,4 +29,9 @@
         ...
       {% endif %}
     {% endfor %}
+
+{% if diagrama_barra %}
+    <embed type="image/svg+xml" src={{diagrama_barra|safe}} /> 
+{% endif %}
+
 {% endblock content %}

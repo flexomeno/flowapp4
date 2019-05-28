@@ -71,6 +71,19 @@
                 {{ form.periocidad(class="form-control form-control-lg") }}
                 {% endif %}
             </div>
+            <div class="form-group">
+                {{ form.estrato.label(class="form-control-label") }}
+                {% if form.estrato.errors %}
+                {{ form.estrato(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.estrato.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.estrato(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
 
             <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
             <script src="//code.jquery.com/jquery-1.10.2.js"></script>

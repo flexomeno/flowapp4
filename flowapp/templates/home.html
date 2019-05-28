@@ -25,6 +25,7 @@
             <p class="article-content"><strong>Categoria:</strong> {{ device.dispCategoria.title }} - <strong>Zona:</strong> {{ device.zona }} - <strong>Limite en CC:</strong> {{ device.configLimiteDispositivo.limitDefined }}</p>
             <p class="article-content"><strong>Fecha Inicial Monitoreo:</strong> {{ device.configLimiteDispositivo.startDateConfig.strftime('%Y-%m-%d') }} </p>
             <p class="article-content"><strong>Fecha Final Monitoreo:</strong> {{ device.configLimiteDispositivo.endDateConfig.strftime('%Y-%m-%d') }} </p>
+            <p class="article-content"><strong>Estrato:</strong> {{ device.configLimiteDispositivo.estrato.estrato }} </p>
           </div>
         </article>
     {% endfor %}
@@ -40,3 +41,28 @@
       {% endif %}
     {% endfor %}
 {% endblock content %}
+
+{% block sidebar %}
+<div class="slider">
+    <input type="radio" name="slider" title="slide1" checked="checked" class="slider__nav"/>
+    <input type="radio" name="slider" title="slide2" class="slider__nav"/>
+    <input type="radio" name="slider" title="slide3" class="slider__nav"/>
+    <input type="radio" name="slider" title="slide4" class="slider__nav"/>
+    <div class="slider__inner">
+
+
+        {% for tip in lista_recomendacion %}
+        <div class="slider__contents"><i class="slider__image fa fa-newspaper-o"></i>
+          <h2 class="slider__caption">Tip</h2>
+          <p class="slider__txt">{{tip[0]}}</p>
+        </div>
+        {% endfor %}
+    </div>
+  </div>
+
+{% if diagrama_barra %}
+    <embed type="image/svg+xml" src={{diagrama_barra|safe}} /> 
+{% endif %}
+
+  {% endblock sidebar %}
+
